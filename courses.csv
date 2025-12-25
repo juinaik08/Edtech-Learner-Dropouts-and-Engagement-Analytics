@@ -1,0 +1,31 @@
+course_id,course_category,course_difficulty,subscription_type
+C1,AI/ML,Intermediate,Paid Monthly
+C2,Business,Intermediate,Free
+C3,Coding,Advanced,Free
+C4,Business,Beginner,Free
+C5,Science,Advanced,Paid Yearly
+C6,AI/ML,Beginner,Paid Monthly
+C7,Science,Intermediate,Paid Monthly
+C8,Business,Advanced,Paid Monthly
+C9,Coding,Beginner,Paid Monthly
+C10,Science,Intermediate,Paid Yearly
+C11,Business,Beginner,Free
+C12,Science,Intermediate,Free
+C13,Business,Advanced,Free
+C14,Science,Beginner,Paid Monthly
+C15,Business,Intermediate,Paid Yearly
+C16,Science,Beginner,Paid Monthly
+C17,Science,Advanced,Paid Yearly
+C18,Science,Beginner,Paid Yearly
+C19,AI/ML,Beginner,Paid Yearly
+C20,Science,Beginner,Free
+C21,Science,Intermediate,Paid Monthly
+C22,Business,Advanced,Paid Monthly
+C23,Math,Beginner,Paid Monthly
+C24,Science,Beginner,Free
+C25,Science,Beginner,Paid Yearly
+C26,Coding,Advanced,Paid Monthly
+C27,Business,Advanced,Paid Yearly
+C28,Science,Beginner,Free
+C29,AI/ML,Beginner,Paid Monthly
+C30,Science,Advanced,Paid Yearly
