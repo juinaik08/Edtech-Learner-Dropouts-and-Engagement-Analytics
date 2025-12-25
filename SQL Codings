@@ -1,0 +1,260 @@
+-- DATABASE
+CREATE DATABASE Learner;
+USE Learner;
+
+/* ================================
+   1. DATABASE SETUP
+================================ */
+CREATE DATABASE IF NOT EXISTS Learner;
+USE Learner;
+
+/* Enable CSV loading */
+SET GLOBAL local_infile = 1;
+SHOW VARIABLES LIKE 'local_infile';
+SHOW VARIABLES LIKE 'secure_file_priv';
+
+
+/* ================================
+   2. TABLE CREATION
+================================ */
+
+-- STUDENTS
+CREATE TABLE students (
+    student_id VARCHAR(10) PRIMARY KEY,
+    age INT,
+    education_level VARCHAR(20),
+    country VARCHAR(10)
+);
+
+-- COURSES
+CREATE TABLE courses (
+    course_id VARCHAR(10) PRIMARY KEY,
+    course_category VARCHAR(50),
+    course_difficulty VARCHAR(50),
+    subscription_type VARCHAR(50)
+);
+
+-- PLATFORM USAGE (PU)
+CREATE TABLE pu (
+    student_id VARCHAR(10),
+    course_id VARCHAR(10),
+    total_login_days INT,
+    avg_session_time_min INT,
+    total_study_time_min INT,
+    last_login_days_ago INT,
+    device_type VARCHAR(20)
+);
+
+-- PERFORMANCE
+CREATE TABLE performance (
+    student_id VARCHAR(10) PRIMARY KEY,
+    average_quiz_score INT,
+    assignment_score INT,
+    final_exam_score INT,
+    badges_earned INT,
+    certified INT
+);
+
+-- TIME BEHAVIOUR
+CREATE TABLE time_behaviour (
+    student_id VARCHAR(10) PRIMARY KEY,
+    days_to_first_activity INT,
+    consistent_weekly_study INT
+);
+
+-- PAYMENT
+CREATE TABLE payment (
+    student_id VARCHAR(10) PRIMARY KEY,
+    payment_amount INT,
+    refund_requested INT,
+    discount_used INT
+);
+
+-- LEARNER ACTIVITY
+CREATE TABLE learner_activity (
+    student_id VARCHAR(10) PRIMARY KEY,
+    videos_watched INT,
+    quizzes_attempted INT,
+    assignments_submitted INT,
+    forum_posts INT,
+    progress_percent INT,
+    notes_downloaded INT
+);
+
+-- DROPOUT
+CREATE TABLE dropout (
+    student_id VARCHAR(10) PRIMARY KEY,
+    dropout INT
+);
+
+
+/* ================================
+   3. LOAD CSV DATA
+   (Place CSVs inside secure_file_priv folder)
+================================ */
+
+-- STUDENTS
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/students.csv'
+INTO TABLE students
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+-- COURSES
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/courses.csv'
+INTO TABLE courses
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+-- PU
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/PU.csv'
+INTO TABLE pu
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+-- PERFORMANCE
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/performance.csv'
+INTO TABLE performance
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+-- TIME BEHAVIOUR
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/time_behaviour.csv'
+INTO TABLE time_behaviour
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+-- PAYMENT
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/payment.csv'
+INTO TABLE payment
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+-- LEARNER ACTIVITY
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/learner_activity.csv'
+INTO TABLE learner_activity
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+-- DROPOUT
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/dropout.csv'
+INTO TABLE dropout
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+
+/* ================================
+   4. DATA QUALITY CHECKS
+================================ */
+
+-- Primary key duplicates
+SELECT student_id, COUNT(*)
+FROM students
+GROUP BY student_id
+HAVING COUNT(*) > 1;
+
+-- Missing values
+SELECT
+    SUM(age IS NULL) AS missing_age,
+    SUM(country IS NULL) AS missing_country
+FROM students;
+
+-- Progress validation
+SELECT *
+FROM learner_activity
+WHERE progress_percent < 0 OR progress_percent > 100;
+
+-- Target distribution
+SELECT dropout, COUNT(*) AS student_count
+FROM dropout
+GROUP BY dropout;
+
+
+/* ================================
+   5. BUSINESS ANALYSIS
+================================ */
+
+-- Dropout vs Engagement
+SELECT 
+    d.dropout,
+    AVG(l.progress_percent) AS avg_progress,
+    AVG(p.total_login_days) AS avg_login_days
+FROM dropout d
+JOIN learner_activity l ON d.student_id = l.student_id
+JOIN pu p ON d.student_id = p.student_id
+GROUP BY d.dropout;
+
+-- Dropout by Course Difficulty
+SELECT 
+    c.course_difficulty,
+    COUNT(*) AS total_students,
+    SUM(d.dropout) AS dropouts,
+    ROUND(SUM(d.dropout)/COUNT(*) * 100, 2) AS dropout_rate
+FROM pu p
+JOIN courses c ON p.course_id = c.course_id
+JOIN dropout d ON p.student_id = d.student_id
+GROUP BY c.course_difficulty;
+
+-- Paid vs Free
+SELECT 
+    c.subscription_type,
+    COUNT(*) AS total_students,
+    SUM(d.dropout) AS dropouts
+FROM pu p
+JOIN courses c ON p.course_id = c.course_id
+JOIN dropout d ON p.student_id = d.student_id
+GROUP BY c.subscription_type;
+
+
+/* ================================
+   6. MASTER DATASET
+================================ */
+
+CREATE TABLE master_dataset AS
+SELECT
+    s.student_id,
+    s.age,
+    s.education_level,
+    s.country,
+    c.course_category,
+    c.course_difficulty,
+    c.subscription_type,
+    p.total_login_days,
+    p.avg_session_time_min,
+    p.total_study_time_min,
+    p.last_login_days_ago,
+    l.videos_watched,
+    l.quizzes_attempted,
+    l.assignments_submitted,
+    l.progress_percent,
+    perf.final_exam_score,
+    pay.payment_amount,
+    t.consistent_weekly_study,
+    d.dropout
+FROM students s
+JOIN pu p ON s.student_id = p.student_id
+JOIN courses c ON p.course_id = c.course_id
+JOIN learner_activity l ON s.student_id = l.student_id
+JOIN performance perf ON s.student_id = perf.student_id
+JOIN payment pay ON s.student_id = pay.student_id
+JOIN time_behaviour t ON s.student_id = t.student_id
+JOIN dropout d ON s.student_id = d.student_id;
+
+-- Final check
+SELECT COUNT(*) FROM master_dataset;
+SELECT * FROM master_dataset LIMIT 10;
