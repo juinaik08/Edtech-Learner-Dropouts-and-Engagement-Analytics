@@ -1,0 +1,48 @@
+-- Total Students
+Total Students = COUNT('sql sheet'[student_id])
+
+-- Total Dropouts
+Total Dropouts = 
+CALCULATE(
+    COUNT('sql sheet'[student_id]),
+    'sql sheet'[dropout] = 1
+)
+
+-- Dropout Rate %
+Dropout Rate % =
+DIVIDE([Total Dropouts], [Total Students]) * 100
+
+-- Average Engagement Score per Student
+Avg Engagement Score =
+AVERAGEX(
+    'sql sheet',
+    'sql sheet'[videos_watched] +
+    'sql sheet'[quizzes_attempted] +
+    'sql sheet'[assignments_submitted]
+)
+
+-- Average Progress %
+Avg Progress % =
+AVERAGE('sql sheet'[progress_percent])
+
+-- High Risk Learners
+High Risk Learners =
+CALCULATE(
+    COUNT('sql sheet'[student_id]),
+    'sql sheet'[Risk Level] = "High Risk"
+)
+
+-- High Risk %
+High Risk % =
+DIVIDE([High Risk Learners], [Total Students]) * 100
+
+-- Average Login Days
+Avg Login Days =
+AVERAGE('sql sheet'[total_login_days])
+
+-- Inactive Learners
+Inactive Learners =
+CALCULATE(
+    COUNT('sql sheet'[student_id]),
+    'sql sheet'[last_login_days_ago] > 30
+)
