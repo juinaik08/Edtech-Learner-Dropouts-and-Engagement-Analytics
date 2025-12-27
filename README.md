@@ -166,12 +166,3 @@ These analytical outputs were later consumed in **Power BI**.
 ✔ Business Insights Delivered  
 
 ---
-
-## 🙌 Author
-
-**Zoo**  
-Data Analytics | SQL | Power BI | Business Intelligence  
-
----
-
-⭐ *If you found this project useful, consider giving it a star!*  
